@@ -21,7 +21,7 @@ Public URL: `https://jofoo.tech/jofooai/`. GitHub Pages project site, no CNAME f
 Zod schema in `src/content.config.ts`. The build fails if any of these are missing or wrong:
 `contentId` (regex `^JAI-\d{8}-\d{3}$`), `lang` ('en'|'ar'), `translationOf` (slug of the other language, optional), `title` (≤ 70 chars), `description` (120 to 160 chars), `promise`, `pillar` (enum: fix-it, save-time, tools, in-a-minute, create, safety), `segment` (enum: beginners, students, professionals, older-adults, creators), `level` (beginner|intermediate|advanced), `tools` (string[] ≥ 1), `cost` (string, for example "$0 on the free plan"), `timeMinutes` (int), `verifiedOn` (date), `updatedOn` (date, optional), `sources` (array ≥ 1 of {title, url, accessed: date}), `riskLevel` (LOW|MEDIUM|HIGH), `qaRecord` (string), `primaryKeyword`, `secondaryKeywords` (string[]), `faq` (array of {q, a}), `videoIds` ({youtube?, instagram?}[], optional), `draft` (boolean, default false).
 - Pages are only built for `draft: false`.
-- **Build guard:** any guide with `riskLevel` other than LOW must have `qaRecord` starting with `QA-APPROVED-`.
+- **Build guard:** any guide with `riskLevel` other than LOW must have `qaRecord` matching `^QA-APPROVED-JAI-\d{8}-\d{3}-\d{8}$`.
 
 Put **one** sample guide in `src/content/guides/{en,ar}/sample-guide.mdx` with `draft: true`, so no page is generated for it. It exists only to exercise the schema and components in a test build: `npm run build:preview` sets `INCLUDE_DRAFTS=1`.
 
@@ -95,3 +95,11 @@ Pagefind runs after `astro build` (`pagefind --site dist`). Index only guide bod
 `npm run verify` exits 0.
 - After `build:preview`: `dist/guides/sample-guide/index.html` and `dist/ar/guides/sample-guide/index.html` exist, and they contain hreflang, canonical, Article JSON-LD and `dir="rtl"` (Arabic).
 - After a plain `npm run build`: the sample guide is not present, the hub shows the empty state, and `dist/pagefind/` exists.
+
+## Review corrections
+- Published guides require `^QA-(APPROVED-)?JAI-\d{8}-\d{3}-\d{8}$`; LOW-risk drafts may use PENDING. Elevated-risk approval remains mandatory for drafts.
+- Source URLs and Shot credits require HTTPS. Each video entry requires exactly one provider ID. Optional `videoUploadDate` supplies VideoObject uploadDate; otherwise it is omitted. Video metadata uses url/embedUrl.
+- Hreflang is emitted only for available translation pairs (draft pairs are available in preview). An unpublished counterpart does not block publication.
+- The 404 and both newsletter thank-you pages are noindex and excluded from the sitemap. The 404 omits canonical and hreflang.
+- Breadcrumbs have localized labels and a current-page item; Arabic uses the Arabic body font. Empty hubs omit the count line.
+- Wording checks normalize markup whitespace. Verify includes preview acceptance; deploy checks production acceptance after building.
